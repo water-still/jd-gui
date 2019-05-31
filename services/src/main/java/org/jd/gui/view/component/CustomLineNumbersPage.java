@@ -269,6 +269,9 @@ public abstract class CustomLineNumbersPage extends HyperlinkPage {
 
             if (lineNumberMap != null) {
                 originalLineNumber = (lineNumber < lineNumberMap.length) ? lineNumberMap[lineNumber] : 0;
+                if (originalLineNumber == 0) {
+                    originalLineNumber = lineNumber;
+                }
             } else {
                 originalLineNumber = lineNumber;
             }

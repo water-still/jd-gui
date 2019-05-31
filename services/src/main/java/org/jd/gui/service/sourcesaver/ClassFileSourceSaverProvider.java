@@ -15,6 +15,7 @@ import org.jd.gui.util.decompiler.LineNumberStringBuilderPrinter;
 import org.jd.gui.util.exception.ExceptionUtil;
 import org.jd.gui.util.io.NewlineOutputStream;
 
+
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -24,12 +25,18 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Manifest;
+import java.util.Arrays;
+
+import org.benf.cfr.reader.api.CfrDriver;
+import com.strobel.decompiler.DecompilerSettings;
+import com.strobel.decompiler.PlainTextOutput;
 
 public class ClassFileSourceSaverProvider extends AbstractSourceSaverProvider {
     protected static final String ESCAPE_UNICODE_CHARACTERS = "ClassFileDecompilerPreferences.escapeUnicodeCharacters";
     protected static final String REALIGN_LINE_NUMBERS = "ClassFileDecompilerPreferences.realignLineNumbers";
     protected static final String WRITE_LINE_NUMBERS = "ClassFileSaverPreferences.writeLineNumbers";
     protected static final String WRITE_METADATA = "ClassFileSaverPreferences.writeMetadata";
+    protected static final String DECOMPILE_ENGINE            = "ClassFileDecompilerPreferences.decompileEngine";
 
     protected static final ClassFileToJavaSourceDecompiler DECOMPILER = new ClassFileToJavaSourceDecompiler();
 
@@ -93,6 +100,7 @@ public class ClassFileSourceSaverProvider extends AbstractSourceSaverProvider {
             boolean realignmentLineNumbers = getPreferenceValue(preferences, REALIGN_LINE_NUMBERS, true);
             boolean unicodeEscape = getPreferenceValue(preferences, ESCAPE_UNICODE_CHARACTERS, false);
             boolean showLineNumbers = getPreferenceValue(preferences, WRITE_LINE_NUMBERS, true);
+            String decompileEngine = getPreferenceString(preferences, DECOMPILE_ENGINE, "JD-CORE");
 
             Map<String, Object> configuration = new HashMap<>();
             configuration.put("realignLineNumbers", realignmentLineNumbers);
@@ -109,11 +117,43 @@ public class ClassFileSourceSaverProvider extends AbstractSourceSaverProvider {
             String entryPath = entry.getPath();
             assert entryPath.endsWith(".class");
             String entryInternalName = entryPath.substring(0, entryPath.length() - 6); // 6 = ".class".length()
+            
+            StringBuilder stringBuffer = new StringBuilder();
+            switch (decompileEngine) {
+                case "JD-CORE":
+                    DECOMPILER.decompile(loader, printer, entryInternalName, configuration);
+                    stringBuffer = printer.getStringBuffer();
+                    break;
+                case "CFR":
+                     //use cfr for decompile
+                     MyOutputStreamFactory sink = new MyOutputStreamFactory();
+                     Map<String, String> options = new HashMap<>();
+                     options.put("decodestringswitch", "true");
+                     CfrDriver driver = new CfrDriver.Builder()
+                         .withClassFileSource(new DataSource(loader.load(entryInternalName), entryPath))
+                         .withOptions(options)
+                         .withOutputSink(sink)
+                         .build();
+                         driver.analyse(Arrays.asList(entryPath));
+                     stringBuffer = new StringBuilder(sink.getGeneratedSource().toString());
+                     break;
+                case "Procyon":
+                     Map<String, byte[]> importantClasses = new HashMap<>();
+                     importantClasses.put(entryInternalName, loader.load(entryInternalName));
+                     DecompilerSettings settings = new DecompilerSettings();
+                     settings.setTypeLoader(new ProcyonTypeLoader(importantClasses));
+                     settings.setForceExplicitImports(true);
+                     settings.setRetainRedundantCasts(true);
+                     settings.setIncludeErrorDiagnostics(true);
+                     settings.setIncludeLineNumbersInBytecode(true);
+                     settings.setForceExplicitTypeArguments(true);
+                     settings.setExcludeNestedTypes(false);
 
-            // Decompile class file
-            DECOMPILER.decompile(loader, printer, entryInternalName, configuration);
-
-            StringBuilder stringBuffer = printer.getStringBuffer();
+                     StringWriter stringwriter = new StringWriter();
+                     com.strobel.decompiler.Decompiler.decompile(entryInternalName, new PlainTextOutput(stringwriter), settings);
+                     stringBuffer = new StringBuilder(stringwriter.toString());
+                     break;
+            }
 
             // Metadata
             if (getPreferenceValue(preferences, WRITE_METADATA, true)) {
@@ -167,5 +207,10 @@ public class ClassFileSourceSaverProvider extends AbstractSourceSaverProvider {
     protected static boolean getPreferenceValue(Map<String, String> preferences, String key, boolean defaultValue) {
         String v = preferences.get(key);
         return (v == null) ? defaultValue : Boolean.valueOf(v);
+    }
+
+    protected static String getPreferenceString(Map<String, String> preferences, String key, String defaultValue) {
+        String v = preferences.get(key);
+        return (v == null) ? defaultValue : v;
     }
 }

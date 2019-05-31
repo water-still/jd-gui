@@ -18,7 +18,7 @@ public class TextFileIndexerProvider extends AbstractIndexerProvider {
         return appendSelectors(
                 "*:file:*.txt", "*:file:*.html", "*:file:*.xhtml", "*:file:*.js", "*:file:*.jsp", "*:file:*.jspf",
                 "*:file:*.xml", "*:file:*.xsl", "*:file:*.xslt", "*:file:*.xsd", "*:file:*.properties", "*:file:*.sql",
-                "*:file:*.yaml", "*:file:*.yml", "*:file:*.json");
+                "*:file:*.yaml", "*:file:*.yml", "*:file:*.json", "*:file:*.cfg", "*:file:*.script", "*:file:*.yang", "*:file:*.info", "*:file:*.security", "*:file:*.sh", "*:file:*.bat");
     }
 
     @Override

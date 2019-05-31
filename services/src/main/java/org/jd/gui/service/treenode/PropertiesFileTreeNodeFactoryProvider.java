@@ -20,7 +20,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class PropertiesFileTreeNodeFactoryProvider extends TextFileTreeNodeFactoryProvider {
     protected static final ImageIcon ICON = new ImageIcon(PropertiesFileTreeNodeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/ascii_obj.png"));
 
-    @Override public String[] getSelectors() { return appendSelectors("*:file:*.properties"); }
+    @Override public String[] getSelectors() { return appendSelectors("*:file:*.properties", "*:file:*.cfg", "*:file:*.script", "*:file:*.security"); }
 
     @Override
     @SuppressWarnings("unchecked")

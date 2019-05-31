@@ -29,9 +29,12 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class AbstractTextPage extends JPanel implements LineNumberNavigable, ContentSearchable, UriOpenable, PreferencesChangeListener {
     protected static final String FONT_SIZE_KEY = "ViewerPreferences.fontSize";
+    protected static final String THEME = "ViewerPreferences.theme";
 
     protected static final ImageIcon COLLAPSED_ICON = new ImageIcon(AbstractTextPage.class.getClassLoader().getResource("org/jd/gui/images/plus.png"));
     protected static final ImageIcon EXPANDED_ICON = new ImageIcon(AbstractTextPage.class.getClassLoader().getResource("org/jd/gui/images/minus.png"));
@@ -58,7 +61,7 @@ public class AbstractTextPage extends JPanel implements LineNumberNavigable, Con
         textArea.setCaretPosition(0);
         textArea.setEditable(false);
         textArea.setDropTarget(null);
-        textArea.setPopupMenu(null);
+        //textArea.setPopupMenu(null);
         textArea.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
@@ -67,6 +70,78 @@ public class AbstractTextPage extends JPanel implements LineNumberNavigable, Con
                 }
             }
         });
+
+        // Edit RTextArea's PopupMenu
+		JPopupMenu pop = textArea.getPopupMenu();
+		pop.addSeparator();
+        JMenu item = new JMenu("Theme");
+        JMenuItem darkItem = new JMenuItem("dark");
+        JMenuItem eclipseItem = new JMenuItem("eclipse");
+        JMenuItem ideaItem = new JMenuItem("idea");
+        JMenuItem monokaiItem = new JMenuItem("monokai");
+        JMenuItem vsItem = new JMenuItem("vs");
+        item.add(darkItem);
+        item.add(eclipseItem);
+        item.add(ideaItem);
+        item.add(monokaiItem);
+        item.add(vsItem);
+        darkItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+                try {
+                   Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
+                   theme.apply(textArea);
+               } catch (IOException exp) {
+                   assert ExceptionUtil.printStackTrace(exp);
+               }
+			}
+        });
+        eclipseItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+                try {
+                   Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/eclipse.xml"));
+                   theme.apply(textArea);
+               } catch (IOException exp) {
+                   assert ExceptionUtil.printStackTrace(exp);
+               }
+			}
+        });
+        ideaItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+                try {
+                   Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));
+                   theme.apply(textArea);
+               } catch (IOException exp) {
+                   assert ExceptionUtil.printStackTrace(exp);
+               }
+			}
+        });
+        monokaiItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+                try {
+                   Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/monokai.xml"));
+                   theme.apply(textArea);
+               } catch (IOException exp) {
+                   assert ExceptionUtil.printStackTrace(exp);
+               }
+			}
+		});
+		vsItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+                try {
+                   Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/vs.xml"));
+                   theme.apply(textArea);
+               } catch (IOException exp) {
+                   assert ExceptionUtil.printStackTrace(exp);
+               }
+			}
+		});
+		pop.add(item);
+		textArea.setPopupMenu(pop);
 
         KeyStroke ctrlA = KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
         KeyStroke ctrlC = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
@@ -77,7 +152,8 @@ public class AbstractTextPage extends JPanel implements LineNumberNavigable, Con
         inputMap.put(ctrlV, "none");
 
         try {
-            Theme theme = Theme.load(getClass().getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/eclipse.xml"));
+            //Theme theme = Theme.load(getClass().getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/eclipse.xml"));
+            Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/eclipse.xml"));
             theme.apply(textArea);
         } catch (IOException e) {
             assert ExceptionUtil.printStackTrace(e);
@@ -418,12 +494,22 @@ public class AbstractTextPage extends JPanel implements LineNumberNavigable, Con
     // --- PreferencesChangeListener --- //
     public void preferencesChanged(Map<String, String> preferences) {
         String fontSize = preferences.get(FONT_SIZE_KEY);
+        String themeStr = preferences.get(THEME);
 
         if (fontSize != null) {
             try {
                 textArea.setFont(textArea.getFont().deriveFont(Float.parseFloat(fontSize)));
             } catch (Exception e) {
                 assert ExceptionUtil.printStackTrace(e);
+            }
+        }
+
+        if (themeStr != null) {
+            try {
+                Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/" + themeStr + ".xml"));
+                theme.apply(textArea);
+            } catch (IOException exp) {
+                assert ExceptionUtil.printStackTrace(exp);
             }
         }
 

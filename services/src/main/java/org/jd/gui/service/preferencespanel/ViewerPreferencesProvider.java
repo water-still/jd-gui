@@ -23,14 +23,19 @@ public class ViewerPreferencesProvider extends JPanel implements PreferencesPane
     protected static final int MIN_VALUE = 2;
     protected static final int MAX_VALUE = 40;
     protected static final String FONT_SIZE_KEY = "ViewerPreferences.fontSize";
+    protected static final String THEME = "ViewerPreferences.theme";
+
+    protected static final String THEMES[] = {"dark", "eclipse", "idea", "monokai", "vs"};
 
     protected PreferencesPanel.PreferencesPanelChangeListener listener = null;
     protected JTextField fontSizeTextField;
     protected Color errorBackgroundColor = Color.RED;
     protected Color defaultBackgroundColor;
+    protected JLabel selectTheme;
+    protected JComboBox themeBox;
 
     public ViewerPreferencesProvider() {
-        super(new BorderLayout());
+        super(new GridLayout(0,1));
 
         add(new JLabel("Font size (" + MIN_VALUE + ".." + MAX_VALUE + "): "), BorderLayout.WEST);
 
@@ -39,6 +44,11 @@ public class ViewerPreferencesProvider extends JPanel implements PreferencesPane
         add(fontSizeTextField, BorderLayout.CENTER);
 
         defaultBackgroundColor = fontSizeTextField.getBackground();
+
+        selectTheme = new JLabel("Select theme: ");
+        themeBox = new JComboBox(THEMES);
+        add(selectTheme);
+        add(themeBox);
     }
 
     // --- PreferencesPanel --- //
@@ -72,11 +82,19 @@ public class ViewerPreferencesProvider extends JPanel implements PreferencesPane
 
         fontSizeTextField.setText(fontSize);
         fontSizeTextField.setCaretPosition(fontSizeTextField.getText().length());
+
+        String theme = preferences.get(THEME);
+        if (theme == null) {
+            themeBox.setSelectedItem("eclipse");
+        } else {
+            themeBox.setSelectedItem(theme);
+        }
     }
 
     @Override
     public void savePreferences(Map<String, String> preferences) {
         preferences.put(FONT_SIZE_KEY, fontSizeTextField.getText());
+        preferences.put(THEME, themeBox.getSelectedItem().toString());
     }
 
     @Override

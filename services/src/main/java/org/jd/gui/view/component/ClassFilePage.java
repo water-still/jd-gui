@@ -21,12 +21,23 @@ import org.jd.gui.util.exception.ExceptionUtil;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.benf.cfr.reader.api.CfrDriver;
+import java.io.StringWriter;
+import java.io.PrintWriter;
+
+import com.strobel.decompiler.DecompilerSettings;
+import com.strobel.decompiler.PlainTextOutput;
 
 public class ClassFilePage extends TypePage {
     protected static final String ESCAPE_UNICODE_CHARACTERS   = "ClassFileDecompilerPreferences.escapeUnicodeCharacters";
     protected static final String REALIGN_LINE_NUMBERS        = "ClassFileDecompilerPreferences.realignLineNumbers";
+    protected static final String DECOMPILE_ENGINE            = "ClassFileDecompilerPreferences.decompileEngine";
 
     protected static final ClassFileToJavaSourceDecompiler DECOMPILER = new ClassFileToJavaSourceDecompiler();
 
@@ -52,6 +63,8 @@ public class ClassFilePage extends TypePage {
     }
 
     public void decompile(Map<String, String> preferences) {
+        String entryPath = "";
+        String entryInternalName = "";
         try {
             // Clear ...
             clearHyperlinks();
@@ -63,6 +76,7 @@ public class ClassFilePage extends TypePage {
             // Init preferences
             boolean realignmentLineNumbers = getPreferenceValue(preferences, REALIGN_LINE_NUMBERS, true);
             boolean unicodeEscape = getPreferenceValue(preferences, ESCAPE_UNICODE_CHARACTERS, false);
+            String decompileEngine = getPreferenceString(preferences, DECOMPILE_ENGINE, "JD-CORE");
 
             Map<String, Object> configuration = new HashMap<>();
             configuration.put("realignLineNumbers", realignmentLineNumbers);
@@ -78,16 +92,59 @@ public class ClassFilePage extends TypePage {
             printer.setUnicodeEscape(unicodeEscape);
 
             // Format internal name
-            String entryPath = entry.getPath();
+            entryPath = entry.getPath();
             assert entryPath.endsWith(".class");
-            String entryInternalName = entryPath.substring(0, entryPath.length() - 6); // 6 = ".class".length()
+            entryInternalName = entryPath.substring(0, entryPath.length() - 6); // 6 = ".class".length()
+
+            switch (decompileEngine) {
+                case "JD-CORE":
+                    DECOMPILER.decompile(loader, printer, entryInternalName, configuration);
+                    setText(printer.getStringBuffer().toString());
+                    break;
+                case "CFR":
+                     //use cfr for decompile
+                     MyOutputStreamFactory sink = new MyOutputStreamFactory();
+                     Map<String, String> options = new HashMap<>();
+                     options.put("decodestringswitch", "true");
+                     CfrDriver driver = new CfrDriver.Builder()
+                         .withClassFileSource(new DataSource(loader.load(entryInternalName), entryPath))
+                         .withOptions(options)
+                         .withOutputSink(sink)
+                         .build();
+                         driver.analyse(Arrays.asList(entryPath));
+                     setText(sink.getGeneratedSource().toString());
+                     break;
+                case "Procyon":
+                     Map<String, byte[]> importantClasses = new HashMap<>();
+                     importantClasses.put(entryInternalName, loader.load(entryInternalName));
+                     DecompilerSettings settings = new DecompilerSettings();
+                     settings.setTypeLoader(new ProcyonTypeLoader(importantClasses));
+                     settings.setForceExplicitImports(true);
+                     settings.setRetainRedundantCasts(true);
+                     settings.setIncludeErrorDiagnostics(true);
+                     settings.setIncludeLineNumbersInBytecode(true);
+                     settings.setForceExplicitTypeArguments(true);
+                     settings.setExcludeNestedTypes(false);
+
+                     StringWriter stringwriter = new StringWriter();
+                     com.strobel.decompiler.Decompiler.decompile(entryInternalName, new PlainTextOutput(stringwriter), settings);
+                     setText(stringwriter.toString());
+                     break;
+            }
 
             // Decompile class file
-            DECOMPILER.decompile(loader, printer, entryInternalName, configuration);
-            setText(printer.getStringBuffer().toString());
+            //DECOMPILER.decompile(loader, printer, entryInternalName, configuration);
+
+           
+
+
+            //setText(printer.getStringBuffer().toString());
         } catch (Throwable t) {
             assert ExceptionUtil.printStackTrace(t);
-            setText("// INTERNAL ERROR //");
+            //setText("// INTERNAL ERROR //");
+            StringWriter sw = new StringWriter();
+            t.printStackTrace(new PrintWriter(sw));
+            setText(entryPath + "\n" + entryInternalName + "\n" + sw.toString());
         }
 
         maximumLineNumber = getMaximumSourceLineNumber();
@@ -96,6 +153,11 @@ public class ClassFilePage extends TypePage {
     protected static boolean getPreferenceValue(Map<String, String> preferences, String key, boolean defaultValue) {
         String v = preferences.get(key);
         return (v == null) ? defaultValue : Boolean.valueOf(v);
+    }
+
+    protected static String getPreferenceString(Map<String, String> preferences, String key, String defaultValue) {
+        String v = preferences.get(key);
+        return (v == null) ? defaultValue : v;
     }
 
     public String getSyntaxStyle() { return SyntaxConstants.SYNTAX_STYLE_JAVA; }
