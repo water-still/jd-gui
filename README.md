@@ -8,7 +8,9 @@ I use on my own, maybe you will find it useful.
 
 ## Features
 ###Multiple decompile engines support
+
 ###Multiple theme support(use rsyntaxtextarea with the lastest version)
+
 ###Add support multiple document type reading: *.cfg *.yang *.info .script *.sh *.bat
 
 ## How to build?
