@@ -7,11 +7,11 @@ With multiple decompile engines support, like jd-core/cfr/Procyon.
 I use on my own, maybe you will find it useful.
 
 ## Features
-###Multiple decompile engines support
+### Multiple decompile engines support
 
-###Multiple theme support(use rsyntaxtextarea with the lastest version)
+### Multiple theme support(use rsyntaxtextarea with the lastest version)
 
-###Add support multiple document type reading: *.cfg *.yang *.info .script *.sh *.bat
+### Add support multiple document type reading: *.cfg *.yang *.info .script *.sh *.bat
 
 ## How to build?
 ```
