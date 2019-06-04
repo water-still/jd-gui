@@ -9,7 +9,7 @@ package org.jd.gui.service.container;
 
 import org.jd.gui.api.API;
 import org.jd.gui.api.model.Container;
-import org.jd.gui.model.container.WarContainer;
+import org.jd.gui.model.container.JmodContainer;
 import org.jd.gui.spi.ContainerFactory;
 import org.jd.gui.util.exception.ExceptionUtil;
 
@@ -17,18 +17,18 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
-public class WarContainerFactoryProvider implements ContainerFactory {
+public class JmodContainerFactoryProvider implements ContainerFactory {
     @Override
-    public String getType() { return "war"; }
+    public String getType() { return "jmod"; }
 
     @Override
     public boolean accept(API api, Path rootPath) {
-        if (rootPath.toUri().toString().toLowerCase().endsWith(".war!/")) {
+        if (rootPath.toUri().toString().toLowerCase().endsWith(".jmod!/")) {
             return true;
         } else {
-            // Extension: accept uncompressed WAR file containing a folder 'WEB-INF'
+            // Extension: accept uncompressed JMOD file containing a folder 'classes'
             try {
-                return rootPath.getFileSystem().provider().getScheme().equals("file") && Files.exists(rootPath.resolve("WEB-INF"));
+                return rootPath.getFileSystem().provider().getScheme().equals("file") && Files.exists(rootPath.resolve("classes"));
             } catch (InvalidPathException e) {
                 assert ExceptionUtil.printStackTrace(e);
                 return false;
@@ -38,6 +38,6 @@ public class WarContainerFactoryProvider implements ContainerFactory {
 
     @Override
     public Container make(API api, Container.Entry parentEntry, Path rootPath) {
-        return new WarContainer(api, parentEntry, rootPath);
+        return new JmodContainer(api, parentEntry, rootPath);
     }
 }

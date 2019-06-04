@@ -216,6 +216,11 @@ public class ClassFilePage extends TypePage {
             }
         }
 
+        @Override
+        public void end() {
+            setText(stringBuffer.toString());
+        }
+
         // --- Add strings --- //
         @Override
         public void printStringConstant(String constant, String ownerInternalName) {

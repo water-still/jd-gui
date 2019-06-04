@@ -21,6 +21,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Pattern;
 
 public class ClassFileTreeNodeFactoryProvider extends AbstractTypeFileTreeNodeFactoryProvider {
     protected static final ImageIcon CLASS_FILE_ICON = new ImageIcon(ClassFileTreeNodeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/classf_obj.png"));
@@ -38,11 +39,20 @@ public class ClassFileTreeNodeFactoryProvider extends AbstractTypeFileTreeNodeFa
     @Override public String[] getSelectors() { return appendSelectors("*:file:*.class"); }
 
     @Override
+    public Pattern getPathPattern() {
+        if (externalPathPattern == null) {
+            return Pattern.compile("^((?!module-info\\.class).)*$");
+        } else {
+            return externalPathPattern;
+        }
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T extends DefaultMutableTreeNode & ContainerEntryGettable & UriGettable> T make(API api, Container.Entry entry) {
         int lastSlashIndex = entry.getPath().lastIndexOf('/');
-        String name = entry.getPath().substring(lastSlashIndex+1);
-        return (T)new FileTreeNode(entry, new TreeNodeBean(name, CLASS_FILE_ICON), FACTORY);
+        String label = entry.getPath().substring(lastSlashIndex+1);
+        return (T)new FileTreeNode(entry, new TreeNodeBean(label, CLASS_FILE_ICON), FACTORY);
     }
 
     protected static class Factory implements AbstractTypeFileTreeNodeFactoryProvider.PageAndTipFactory {
@@ -54,10 +64,10 @@ public class ClassFileTreeNodeFactoryProvider extends AbstractTypeFileTreeNodeFa
 
         @Override
         public String makeTip(API api, Container.Entry entry) {
-            File file = new File(entry.getContainer().getRoot().getUri());
+            String location = new File(entry.getUri()).getPath();
             StringBuilder tip = new StringBuilder("<html>Location: ");
 
-            tip.append(file.getPath());
+            tip.append(location);
             tip.append("<br>Java compiler version: ");
 
             try (InputStream is = entry.getInputStream()) {

@@ -19,7 +19,7 @@ public class TreeNodeFactoryService {
 
     public static TreeNodeFactoryService getInstance() { return TREE_NODE_FACTORY_SERVICE; }
 
-	protected HashMap<String, TreeNodeFactories> mapProviders = new HashMap<>();
+    protected HashMap<String, TreeNodeFactories> mapProviders = new HashMap<>();
 
     protected TreeNodeFactoryService() {
         Collection<TreeNodeFactory> providers = ExtensionService.getInstance().load(TreeNodeFactory.class);
@@ -43,7 +43,7 @@ public class TreeNodeFactoryService {
     }
 
     protected TreeNodeFactory get(String containerType, Container.Entry entry) {
-        String path = entry.getPath();;
+        String path = entry.getPath();
         String type = entry.isDirectory() ? "dir" : "file";
         String prefix = containerType + ':' + type + ':';
         TreeNodeFactory factory = null;
