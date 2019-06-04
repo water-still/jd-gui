@@ -4,7 +4,7 @@ dependencies {
     compile 'com.fifesoft:rsyntaxtextarea:3.0.3'
     compile 'org.ow2.asm:asm:7.1'
     compile 'org.jd:jd-core:' + parent.jdCoreVersion
-    compile files('./cfr-0.144.jar')
+    compile files('./cfr-0.145.jar')
     compile files('./procyon-decompiler-0.5.34.jar')
     compile project(':api')
     testCompile 'junit:junit:4.12'
