@@ -34,8 +34,12 @@ public class FileLoaderService {
 
     public FileLoader get(API api, File file) {
         String name = file.getName();
-        int lastDot = name.lastIndexOf('.');
-        String extension = name.substring(lastDot+1);
+        String extension = " ";
+        if (!file.isDirectory()) {
+            int lastDot = name.lastIndexOf('.');
+            extension = name.substring(lastDot + 1);
+
+        }
         FileLoader provider = mapProviders.get(extension);
         return provider;
     }

@@ -86,6 +86,7 @@ public class MainController implements API {
             mainView = new MainView(
                 configuration, this, history,
                 e -> onOpen(),
+                e -> onOpenDir(),
                 e -> onClose(),
                 e -> onSaveSource(),
                 e -> onSaveAllSources(),
@@ -176,7 +177,9 @@ public class MainController implements API {
         extensions.sort(null);
 
         for (String extension : extensions) {
-            sb.append("*.").append(extension).append(", ");
+            if (extension != " ") {
+                sb.append("*.").append(extension).append(", ");
+            }
         }
 
         sb.setLength(sb.length()-2);
@@ -193,6 +196,20 @@ public class MainController implements API {
             chooser.addChoosableFileFilter(new FileNameExtensionFilter(loader.getDescription(), loader.getExtensions()));
         }
 
+        chooser.setCurrentDirectory(configuration.getRecentLoadDirectory());
+
+        if (chooser.showOpenDialog(mainView.getMainFrame()) == JFileChooser.APPROVE_OPTION) {
+            configuration.setRecentLoadDirectory(chooser.getCurrentDirectory());
+            openFile(chooser.getSelectedFile());
+        }
+    }
+    
+    protected void onOpenDir() {
+        Map<String, FileLoader> loaders = FileLoaderService.getInstance().getMapProviders();
+        StringBuilder sb = new StringBuilder();
+        
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setCurrentDirectory(configuration.getRecentLoadDirectory());
 
         if (chooser.showOpenDialog(mainView.getMainFrame()) == JFileChooser.APPROVE_OPTION) {

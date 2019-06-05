@@ -7,3 +7,4 @@ org.jd.gui.service.fileloader.JmodFileLoaderProvider
 org.jd.gui.service.fileloader.LogFileLoaderProvider
 org.jd.gui.service.fileloader.WarFileLoaderProvider
 org.jd.gui.service.fileloader.ZipFileLoaderProvider
+org.jd.gui.service.fileloader.DirFileLoaderProvider
