@@ -111,7 +111,7 @@ public class ClassFileSourceSaverProvider extends AbstractSourceSaverProvider {
                      Map<String, String> options = new HashMap<>();
                      options.put("decodestringswitch", "true");
                      CfrDriver driver = new CfrDriver.Builder()
-                         .withClassFileSource(new DataSource(loader.load(entryInternalName), entryPath))
+                         .withClassFileSource(new DataSource(loader, loader.load(entryInternalName), entryPath))
                          .withOptions(options)
                          .withOutputSink(sink)
                          .build();
@@ -122,7 +122,7 @@ public class ClassFileSourceSaverProvider extends AbstractSourceSaverProvider {
                      Map<String, byte[]> importantClasses = new HashMap<>();
                      importantClasses.put(entryInternalName, loader.load(entryInternalName));
                      DecompilerSettings settings = new DecompilerSettings();
-                     settings.setTypeLoader(new ProcyonTypeLoader(importantClasses));
+                     settings.setTypeLoader(new ProcyonTypeLoader(importantClasses, loader));
                      settings.setForceExplicitImports(true);
                      settings.setRetainRedundantCasts(true);
                      settings.setIncludeErrorDiagnostics(true);

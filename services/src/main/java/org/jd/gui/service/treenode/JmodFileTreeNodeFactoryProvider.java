@@ -15,6 +15,7 @@ import org.jd.gui.view.data.TreeNodeBean;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
+import java.net.URI;
 
 public class JmodFileTreeNodeFactoryProvider extends ZipFileTreeNodeFactoryProvider {
     @Override public String[] getSelectors() { return appendSelectors("*:file:*.jmod"); }
@@ -24,7 +25,9 @@ public class JmodFileTreeNodeFactoryProvider extends ZipFileTreeNodeFactoryProvi
     public <T extends DefaultMutableTreeNode & ContainerEntryGettable & UriGettable> T make(API api, Container.Entry entry) {
         int lastSlashIndex = entry.getPath().lastIndexOf("/");
         String label = entry.getPath().substring(lastSlashIndex+1);
-        String location = new File(entry.getUri()).getPath();
+        URI uri = entry.getUri();
+        String location = (uri.getAuthority() == null) ? new File(uri).getPath():new File(uri.getSchemeSpecificPart()).getPath();
+        //String location = new File(entry.getUri()).getPath();
         T node = (T)new TreeNode(entry, new TreeNodeBean(label, "Location: " + location, ICON));
         // Add dummy node
         node.add(new DefaultMutableTreeNode());

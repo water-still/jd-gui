@@ -11,6 +11,9 @@ import org.benf.cfr.reader.api.CfrDriver;
 import org.benf.cfr.reader.api.ClassFileSource;
 import org.benf.cfr.reader.api.OutputSinkFactory;
 import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
+import org.jd.core.v1.api.loader.LoaderException;
+import org.jd.gui.util.decompiler.ContainerLoader;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -18,10 +21,12 @@ import java.io.PrintWriter;
 
 
 class DataSource implements ClassFileSource {
+    ContainerLoader loader;
     byte[] data;
     private String name;
 
-    public DataSource(byte[] data, String name) {
+    public DataSource(ContainerLoader loader, byte[] data, String name) {
+        this.loader = loader;
         this.data = data;
         this.name = name;
     }
@@ -42,9 +47,18 @@ class DataSource implements ClassFileSource {
 
     @Override
     public Pair<byte[], String> getClassFileContent(String s) throws IOException {
-        if (!s.equals(name)) {
+        if (s.equals(name)) {
+            return Pair.make(data, name);
+        }
+
+        byte[] data;
+        assert s.endsWith(".class");
+        String internalName = s.substring(0, s.length() - 6);
+        try {
+            data = loader.load(internalName);
+        } catch (LoaderException e) {
             throw new FileNotFoundException("Not reading " + s);
         }
-        return Pair.make(data, name);
+        return Pair.make(data, internalName);
     }
 }

@@ -1,9 +1,9 @@
 package org.jd.gui.service.sourcesaver;
 
-
-import com.strobel.assembler.InputTypeLoader;
 import com.strobel.assembler.metadata.Buffer;
 import com.strobel.assembler.metadata.ITypeLoader;
+import org.jd.core.v1.api.loader.LoaderException;
+import org.jd.gui.util.decompiler.ContainerLoader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,11 +11,11 @@ import java.util.Map;
 public class ProcyonTypeLoader implements ITypeLoader {
 
     private final Map<String, byte[]> importantData = new HashMap<>();
+    ContainerLoader loader;
 
-    private final InputTypeLoader backLoader = new InputTypeLoader();
-
-    public ProcyonTypeLoader(Map<String, byte[]> importantClasses) {
+    public ProcyonTypeLoader(Map<String, byte[]> importantClasses, ContainerLoader loader) {
         this.importantData.putAll(importantClasses);
+        this.loader = loader;
     }
 
     @Override
@@ -26,9 +26,23 @@ public class ProcyonTypeLoader implements ITypeLoader {
             buffer.position(0);
             return true;
         } else {
-            return false;
+            if (loader.canLoad(s)) {
+
+                try {
+                    byte[] data = loader.load(s);
+                    buffer.putByteArray(data, 0, data.length);
+                    buffer.position(0);
+                    return true;
+                } catch (LoaderException e) {
+                    return false;
+                }
+
+            } else {
+                return false;
+            }
         }
 
+        //here will try to load file from other file, if a very big file, takes too long time
         //return backLoader.tryLoadType(s, buffer);
     }
 }

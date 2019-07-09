@@ -17,6 +17,7 @@ import org.jd.gui.view.data.TreeNodeBean;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
+import java.net.URI;
 
 public class CssFileTreeNodeFactoryProvider extends TextFileTreeNodeFactoryProvider {
     protected static final ImageIcon ICON = new ImageIcon(HtmlFileTreeNodeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/css_obj.png"));
@@ -28,7 +29,9 @@ public class CssFileTreeNodeFactoryProvider extends TextFileTreeNodeFactoryProvi
     public <T extends DefaultMutableTreeNode & ContainerEntryGettable & UriGettable> T make(API api, Container.Entry entry) {
         int lastSlashIndex = entry.getPath().lastIndexOf("/");
         String label = entry.getPath().substring(lastSlashIndex+1);
-        String location = new File(entry.getUri()).getPath();
+        URI uri = entry.getUri();
+        String location = (uri.getAuthority() == null) ? new File(uri).getPath():new File(uri.getSchemeSpecificPart()).getPath();
+        //String location = new File(entry.getUri()).getPath();
         return (T)new TreeNode(entry, new TreeNodeBean(label, "Location: " + location, ICON));
     }
 

@@ -17,6 +17,7 @@ import org.jd.gui.view.data.TreeNodeBean;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
+import java.net.URI;
 import java.util.Collection;
 
 public class JarFileTreeNodeFactoryProvider extends ZipFileTreeNodeFactoryProvider {
@@ -30,7 +31,9 @@ public class JarFileTreeNodeFactoryProvider extends ZipFileTreeNodeFactoryProvid
     public <T extends DefaultMutableTreeNode & ContainerEntryGettable & UriGettable> T make(API api, Container.Entry entry) {
         int lastSlashIndex = entry.getPath().lastIndexOf("/");
         String label = entry.getPath().substring(lastSlashIndex+1);
-        String location = new File(entry.getUri()).getPath();
+        URI uri = entry.getUri();
+        String location = (uri.getAuthority() == null) ? new File(uri).getPath():new File(uri.getSchemeSpecificPart()).getPath();
+        //String location = new File(entry.getUri()).getPath();
         ImageIcon icon = isAEjbModule(entry) ? EJB_FILE_ICON : JAR_FILE_ICON;
         T node = (T)new TreeNode(entry, new TreeNodeBean(label, "Location: " + location, icon));
         // Add dummy node

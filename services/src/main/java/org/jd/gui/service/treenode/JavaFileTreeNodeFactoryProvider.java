@@ -17,6 +17,7 @@ import org.jd.gui.view.data.TreeNodeBean;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
+import java.net.URI;
 
 public class JavaFileTreeNodeFactoryProvider extends AbstractTypeFileTreeNodeFactoryProvider {
     protected static final ImageIcon JAVA_FILE_ICON = new ImageIcon(JavaFileTreeNodeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/jcu_obj.png"));
@@ -29,7 +30,9 @@ public class JavaFileTreeNodeFactoryProvider extends AbstractTypeFileTreeNodeFac
     public <T extends DefaultMutableTreeNode & ContainerEntryGettable & UriGettable> T make(API api, Container.Entry entry) {
         int lastSlashIndex = entry.getPath().lastIndexOf('/');
         String label = entry.getPath().substring(lastSlashIndex+1);
-        String location = new File(entry.getUri()).getPath();
+        URI uri = entry.getUri();
+        String location = (uri.getAuthority() == null) ? new File(uri).getPath():new File(uri.getSchemeSpecificPart()).getPath();
+        //String location = new File(entry.getUri()).getPath();
         return (T)new FileTreeNode(entry, new TreeNodeBean(label, "Location: " + location, JAVA_FILE_ICON), FACTORY);
     }
 

@@ -21,6 +21,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.regex.Pattern;
 
 public class ClassFileTreeNodeFactoryProvider extends AbstractTypeFileTreeNodeFactoryProvider {
@@ -64,7 +65,9 @@ public class ClassFileTreeNodeFactoryProvider extends AbstractTypeFileTreeNodeFa
 
         @Override
         public String makeTip(API api, Container.Entry entry) {
-            String location = new File(entry.getUri()).getPath();
+            URI uri = entry.getUri();
+            String location = (uri.getAuthority() == null) ? new File(uri).getPath():new File(uri.getSchemeSpecificPart()).getPath();
+            //String location = new File(entry.getUri()).getPath();
             StringBuilder tip = new StringBuilder("<html>Location: ");
 
             tip.append(location);

@@ -17,6 +17,7 @@ import org.jd.gui.view.data.TreeNodeBean;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
+import java.net.URI;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
@@ -49,7 +50,9 @@ public class PackageTreeNodeFactoryProvider extends DirectoryTreeNodeFactoryProv
         }
 
         String label = entry.getPath().substring(lastSlashIndex+1).replace("/", ".");
-        String location = new File(entry.getUri()).getPath();
+        URI uri = entry.getUri();
+        String location = (uri.getAuthority() == null) ? new File(uri).getPath():new File(uri.getSchemeSpecificPart()).getPath();
+        //String location = new File(entry.getUri()).getPath();
         T node = (T)new TreeNode(entry, new TreeNodeBean(label, "Location: " + location, getIcon(), getOpenIcon()));
 
         if (entries.size() > 0) {
